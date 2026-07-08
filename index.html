@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>进货数据中心 · 产品查询</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EDEAE1;
+    --paper-raised:#F7F5EF;
+    --ink:#1F2A24;
+    --ink-soft:#5B665E;
+    --line:#C9C2AF;
+    --stamp:#B3402F;
+    --stamp-dim:#B3402F1a;
+    --seal:#2C5B4F;
+    --seal-dim:#2C5B4F1a;
+    --amber:#C68A2E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 34px);
+    color:var(--ink);
+    font-family:'JetBrains Mono', monospace;
+    min-height:100vh;
+    padding:28px 16px 80px;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;}
+
+  /* Header — invoice stamp style */
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+    border-bottom:3px double var(--ink);
+    padding-bottom:16px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .brand-mark{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  h1{
+    font-family:'Zilla Slab', serif;
+    font-weight:700;
+    font-size:clamp(28px, 5vw, 40px);
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .stamp{
+    border:2.5px solid var(--stamp);
+    color:var(--stamp);
+    border-radius:6px;
+    padding:6px 12px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    transform:rotate(-3deg);
+    white-space:nowrap;
+    align-self:flex-start;
+    margin-top:6px;
+  }
+
+  /* Search */
+  .search-block{margin-bottom:20px;}
+  .search-row{
+    display:flex;
+    gap:10px;
+    background:var(--paper-raised);
+    border:1.5px solid var(--ink);
+    border-radius:4px;
+    padding:4px;
+  }
+  #searchInput{
+    flex:1;
+    border:none;
+    background:transparent;
+    padding:14px 12px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:16px;
+    color:var(--ink);
+    outline:none;
+  }
+  #searchInput::placeholder{color:#9a9384;}
+  .clear-btn{
+    border:none;
+    background:var(--ink);
+    color:var(--paper-raised);
+    padding:0 18px;
+    border-radius:2px;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+    letter-spacing:0.04em;
+  }
+  .clear-btn:hover{background:var(--stamp);}
+  .hint{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:8px;
+    padding-left:2px;
+  }
+
+  /* Status line */
+  .status{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    font-size:12px;
+    color:var(--ink-soft);
+    border-bottom:1px dashed var(--line);
+    padding-bottom:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .status b{color:var(--ink);font-weight:700;}
+
+  /* Result cards */
+  #results{display:flex;flex-direction:column;gap:12px;}
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-left:4px solid var(--seal);
+    border-radius:3px;
+    padding:14px 16px;
+  }
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:8px;
+  }
+  .prod-name{
+    font-family:'Zilla Slab', serif;
+    font-weight:600;
+    font-size:16.5px;
+    line-height:1.35;
+    color:var(--ink);
+  }
+  .prod-name mark{
+    background:var(--amber);
+    color:#231a06;
+    padding:0 2px;
+    border-radius:2px;
+  }
+  .price-tag{
+    font-weight:700;
+    font-size:15px;
+    color:var(--seal);
+    white-space:nowrap;
+    text-align:right;
+  }
+  .price-tag small{display:block;font-weight:500;font-size:10.5px;color:var(--ink-soft);text-align:right;}
+
+  .meta-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+    gap:6px 16px;
+    font-size:12px;
+    color:var(--ink-soft);
+    border-top:1px dashed var(--line);
+    padding-top:8px;
+    margin-top:4px;
+  }
+  .meta-grid div b{
+    display:block;
+    color:var(--ink);
+    font-weight:600;
+    font-size:12.5px;
+  }
+  .meta-grid div span.label{
+    font-size:10px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:#9a9384;
+  }
+
+  .empty, .loading, .error{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    border:1px dashed var(--line);
+    border-radius:4px;
+    background:var(--paper-raised);
+  }
+  .error{color:var(--stamp);border-color:var(--stamp);}
+  .error code{
+    display:block;
+    margin-top:10px;
+    font-size:11px;
+    background:var(--stamp-dim);
+    padding:8px;
+    border-radius:3px;
+    word-break:break-all;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:40px;
+    font-size:11px;
+    color:var(--ink-soft);
+    letter-spacing:0.04em;
+  }
+
+  @media (prefers-reduced-motion: no-preference){
+    .card{transition:border-left-color 0.15s ease;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand-mark">
+      <span class="eyebrow">超市进货数据中心</span>
+      <h1>产品查询</h1>
+    </div>
+    <div class="stamp">Live · 实时数据</div>
+  </header>
+
+  <div class="search-block">
+    <div class="search-row">
+      <input id="searchInput" type="text" placeholder="输入产品名关键字，例如：森永 草莓" autocomplete="off" autofocus />
+      <button class="clear-btn" id="clearBtn">清空</button>
+    </div>
+    <div class="hint">支持多个关键字（用空格分隔），不区分大小写，按到货日期倒序排列</div>
+  </div>
+
+  <div class="status" id="status" style="display:none;">
+    <span>共 <b id="resultCount">0</b> 条记录，来自 <b id="productCount">0</b> 个产品</span>
+    <span id="dataMeta"></span>
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<footer>数据来源：超市进货数据中心 Google Sheet · 页面每次搜索时读取最新数据</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script>
+/* ============================================================
+   配置区：把下面的 CSV_URL 换成你自己「发布到网络」得到的链接
+   Google Sheet → 文件 → 分享 → 发布到网络（Publish to web）
+   → 选择对应的工作表分页 → 格式选 CSV → 复制链接粘贴到下面
+   ============================================================ */
+const CSV_URL = "PASTE_YOUR_PUBLISHED_CSV_URL_HERE";
+
+/* 表格列顺序（对应 Google Sheet 的列 A-L） */
+const COLS = {
+  timestamp: 0,
+  fileName: 1,
+  invoiceNo: 2,
+  supplier: 3,
+  invoicedDate: 4,
+  upc: 5,
+  productName: 6,
+  size: 7,
+  delivery: 8,
+  qtyInCase: 9,
+  priceInCase: 10,
+  cost: 11
+};
+
+const resultsEl = document.getElementById('results');
+const statusEl = document.getElementById('status');
+const resultCountEl = document.getElementById('resultCount');
+const productCountEl = document.getElementById('productCount');
+const dataMetaEl = document.getElementById('dataMeta');
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+
+let allRows = [];
+let dataLoadedAt = null;
+
+function escapeHtml(str){
+  return String(str ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+
+function highlight(text, keywords){
+  let out = escapeHtml(text);
+  keywords.forEach(k => {
+    if(!k) return;
+    const esc = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    out = out.replace(new RegExp('(' + esc + ')', 'ig'), '<mark>$1</mark>');
+  });
+  return out;
+}
+
+function parseDate(str){
+  if(!str) return 0;
+  const t = Date.parse(str);
+  return isNaN(t) ? 0 : t;
+}
+
+async function loadData(){
+  resultsEl.innerHTML = '<div class="loading">正在读取最新数据…</div>';
+  if(CSV_URL.includes('PASTE_YOUR_PUBLISHED_CSV_URL_HERE')){
+    resultsEl.innerHTML = `<div class="error">
+      尚未配置数据源。<br>请打开 index.html，把 CSV_URL 换成你 Google Sheet「发布到网络」得到的 CSV 链接。
+      <code>Google Sheet → 文件 → 分享 → 发布到网络 → 选择分页 → 格式选 CSV</code>
+    </div>`;
+    return;
+  }
+  try{
+    const res = await fetch(CSV_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, {skipEmptyLines:true});
+    const rows = parsed.data;
+    // 第一行是表头，跳过
+    allRows = rows.slice(1).filter(r => r[COLS.productName] && r[COLS.productName].trim() !== '');
+    dataLoadedAt = new Date();
+    render('');
+  }catch(err){
+    resultsEl.innerHTML = `<div class="error">
+      数据加载失败：无法读取 CSV。<br>请确认该 Google Sheet 已「发布到网络」，且链接可以公开访问。
+      <code>${escapeHtml(err.message)}</code>
+    </div>`;
+  }
+}
+
+function search(query){
+  const keywords = query.trim().split(/\s+/).filter(Boolean).map(k => k.toLowerCase());
+  if(keywords.length === 0) return [];
+  return allRows.filter(row => {
+    const name = (row[COLS.productName] || '').toLowerCase();
+    return keywords.every(k => name.includes(k));
+  });
+}
+
+function render(query){
+  const keywords = query.trim().split(/\s+/).filter(Boolean);
+
+  if(keywords.length === 0){
+    statusEl.style.display = 'none';
+    resultsEl.innerHTML = `<div class="empty">输入产品名关键字开始查询<br>例如「森永」或「森永 草莓」</div>`;
+    return;
+  }
+
+  const matched = search(query).slice().sort((a,b) => parseDate(b[COLS.invoicedDate]) - parseDate(a[COLS.invoicedDate]));
+
+  statusEl.style.display = 'flex';
+  resultCountEl.textContent = matched.length;
+  const uniqueNames = new Set(matched.map(r => r[COLS.productName]));
+  productCountEl.textContent = uniqueNames.size;
+  dataMetaEl.textContent = dataLoadedAt ? ('数据读取于 ' + dataLoadedAt.toLocaleTimeString('zh-CN')) : '';
+
+  if(matched.length === 0){
+    resultsEl.innerHTML = `<div class="empty">没有找到匹配「${escapeHtml(query)}」的产品<br>试试更少或不同的关键字</div>`;
+    return;
+  }
+
+  resultsEl.innerHTML = matched.map(row => {
+    const name = row[COLS.productName] || '';
+    const upc = row[COLS.upc] || '—';
+    const supplier = row[COLS.supplier] || '—';
+    const date = row[COLS.invoicedDate] || '—';
+    const size = row[COLS.size] || '—';
+    const qty = row[COLS.qtyInCase] || '—';
+    const priceInCase = row[COLS.priceInCase] || '—';
+    const cost = row[COLS.cost] || '—';
+    const invoiceNo = row[COLS.invoiceNo] || '—';
+
+    return `
+      <div class="card">
+        <div class="card-top">
+          <div class="prod-name">${highlight(name, keywords)}</div>
+          <div class="price-tag">${escapeHtml(priceInCase)}<small>整箱价</small></div>
+        </div>
+        <div class="meta-grid">
+          <div><span class="label">到货日期</span><b>${escapeHtml(date)}</b></div>
+          <div><span class="label">供应商</span><b>${escapeHtml(supplier)}</b></div>
+          <div><span class="label">UPC 条码</span><b>${escapeHtml(upc)}</b></div>
+          <div><span class="label">规格 / 箱规</span><b>${escapeHtml(size !== '—' ? size : qty)}</b></div>
+          <div><span class="label">成本</span><b>${escapeHtml(cost)}</b></div>
+          <div><span class="label">发票号</span><b>${escapeHtml(invoiceNo)}</b></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+let debounceTimer;
+searchInput.addEventListener('input', (e) => {
+  clearTimeout(debounceTimer);
+  const val = e.target.value;
+  debounceTimer = setTimeout(() => render(val), 120);
+});
+
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  render('');
+  searchInput.focus();
+});
+
+loadData();
+</script>
+</body>
+</html>
